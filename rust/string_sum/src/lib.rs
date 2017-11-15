@@ -1,11 +1,11 @@
 const CUSTOM_DELIMETER_BEGIN:&str = "//";
 const CUSTOM_DELIMETER_END:&str = "\n";
 
-fn safe_parse(number:&str) -> u32 {
-    match number.parse::<u32>() {
-        Ok(v) => v,
-        Err(_) => 0
-    }
+pub fn add(numbers:&str) -> u32 {
+    let (delimeters, numbers) = decide_delimeters(numbers);
+    numbers.split(|c:char| delimeters.contains(&c))
+           .map(safe_parse)
+           .sum()
 }
 
 fn decide_delimeters(input:&str) -> (Vec<char>, &str) {
@@ -13,16 +13,27 @@ fn decide_delimeters(input:&str) -> (Vec<char>, &str) {
         return (vec![',', '\n'], input);
     }
     
-    let lines:Vec<&str> = input.split(CUSTOM_DELIMETER_END).collect();
+    if !input.contains(CUSTOM_DELIMETER_END) {
+        panic!("Invalid delimeter statement");
+    }
+
+    let lines:Vec<&str> = input.splitn(2, CUSTOM_DELIMETER_END).collect();
+    if lines[1].contains(CUSTOM_DELIMETER_END) {
+        panic!("Specified delimeter not used");
+    }
+
     let delimeter = lines[0].replace(CUSTOM_DELIMETER_BEGIN, "").replace(CUSTOM_DELIMETER_END, "");
+    if delimeter.len() == 0 {
+        panic!("No delimeter specified");
+    }
     (delimeter.chars().collect(), lines[1])
 }
 
-pub fn add(numbers:&str) -> u32 {
-    let (delimeters, numbers) = decide_delimeters(numbers);
-    numbers.split(|c:char| delimeters.contains(&c))
-           .map(safe_parse)
-           .sum()
+fn safe_parse(number:&str) -> u32 {
+    match number.parse::<u32>() {
+        Ok(v) => v,
+        Err(_) => 0
+    }
 }
 
 #[cfg(test)]
@@ -52,5 +63,23 @@ mod tests {
     #[test]
     fn supports_delimeter_specification() {
         assert_eq!(12, add("//;\n4;6;2"));
+    }
+
+    #[test]
+    #[should_panic(expected = "No delimeter specified")]
+    fn panics_when_delimeter_specification_has_no_delimeter() {
+        add("//\n3,2,1");
+    }
+
+    #[test]
+    #[should_panic(expected = "Specified delimeter not used")]
+    fn panics_when_delimeter_specification_is_not_used() {
+        add("//3\n2\n1");
+    }
+
+    #[test]
+    #[should_panic(expected = "Invalid delimeter statement")]
+    fn panics_when_delimeter_specification_is_invalid() {
+        add("//|3|2|1");
     }
 }
