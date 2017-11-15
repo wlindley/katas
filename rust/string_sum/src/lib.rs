@@ -1,6 +1,5 @@
-fn delimeter(c:char) -> bool {
-    ',' == c || '\n' == c
-}
+const CUSTOM_DELIMETER_BEGIN:&str = "//";
+const CUSTOM_DELIMETER_END:&str = "\n";
 
 fn safe_parse(number:&str) -> u32 {
     match number.parse::<u32>() {
@@ -9,8 +8,19 @@ fn safe_parse(number:&str) -> u32 {
     }
 }
 
+fn decide_delimeters(input:&str) -> (Vec<char>, &str) {
+    if !input.starts_with(CUSTOM_DELIMETER_BEGIN) {
+        return (vec![',', '\n'], input);
+    }
+    
+    let lines:Vec<&str> = input.split(CUSTOM_DELIMETER_END).collect();
+    let delimeter = lines[0].replace(CUSTOM_DELIMETER_BEGIN, "").replace(CUSTOM_DELIMETER_END, "");
+    (delimeter.chars().collect(), lines[1])
+}
+
 pub fn add(numbers:&str) -> u32 {
-    numbers.split(delimeter)
+    let (delimeters, numbers) = decide_delimeters(numbers);
+    numbers.split(|c:char| delimeters.contains(&c))
            .map(safe_parse)
            .sum()
 }
@@ -37,5 +47,10 @@ mod tests {
     #[test]
     fn supports_newline_delimeter() {
         assert_eq!(6, add("2\n3,1"));
+    }
+
+    #[test]
+    fn supports_delimeter_specification() {
+        assert_eq!(12, add("//;\n4;6;2"));
     }
 }
