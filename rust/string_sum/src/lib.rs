@@ -4,21 +4,25 @@ const CUSTOM_DELIMETER_END:&str = "\n";
 pub fn add(numbers:&str) -> Result<u32, String> {
     let input = decide_delimeters(numbers);
 
-    let numbers:Vec<&str> = input.numbers.split(|c:char| input.delimeters.contains(&c)).collect();
+    let values:Vec<_> = input.numbers.split(|c:char| input.delimeters.contains(&c)).collect();
+    match get_negatives_message(&values) {
+        Some(msg) => return Err(msg),
+        _ => ()
+    }
+    Ok(values.iter().fold(0, |accum, cur| accum + safe_parse(cur)))
+}
+
+fn get_negatives_message(numbers:&Vec<&str>) -> Option<String> {
     let mut negatives = String::from("");
-    let mut total = 0;
     for number in numbers {
         if number.contains('-') {
             negatives.push_str(&format!(" {}", &number));
-        } else {
-            total += safe_parse(&number);
         }
     }
     if negatives.len() > 0 {
-        return Err(String::from(format!("negatives not allowed:{}", &negatives)));
+        return Some(String::from(format!("negatives not allowed:{}", &negatives)));
     }
-
-    Ok(total)
+    None
 }
 
 struct ParsedInput<'a> {
