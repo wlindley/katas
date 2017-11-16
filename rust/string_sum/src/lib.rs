@@ -2,15 +2,44 @@ const CUSTOM_DELIMETER_BEGIN:&str = "//";
 const CUSTOM_DELIMETER_END:&str = "\n";
 
 pub fn add(numbers:&str) -> u32 {
-    let (delimeters, numbers) = decide_delimeters(numbers);
-    numbers.split(|c:char| delimeters.contains(&c))
-           .map(safe_parse)
-           .sum()
+    let input = decide_delimeters(numbers);
+    input.numbers.split(|c:char| input.delimeters.contains(&c))
+                 .map(safe_parse)
+                 .sum()
 }
 
-fn decide_delimeters(input:&str) -> (Vec<char>, &str) {
+struct ParsedInput<'a> {
+    delimeters:Vec<char>,
+    numbers:&'a str
+}
+
+impl<'a> ParsedInput<'a> {
+    fn default(numbers:&'a str) -> ParsedInput {
+        ParsedInput {
+            delimeters: vec![',', '\n'],
+            numbers
+        }
+    }
+
+    fn new(numbers:&'a str, delimeters:Vec<char>) -> ParsedInput {
+        if numbers.contains(CUSTOM_DELIMETER_END) {
+            panic!("Specified delimeter not used");
+        }
+
+        if delimeters.len() == 0 {
+            panic!("No delimeter specified");
+        }
+
+        ParsedInput {
+            delimeters,
+            numbers
+        }
+    }
+}
+
+fn decide_delimeters(input:&str) -> ParsedInput {
     if !input.starts_with(CUSTOM_DELIMETER_BEGIN) {
-        return (vec![',', '\n'], input);
+        return ParsedInput::default(input);
     }
     
     if !input.contains(CUSTOM_DELIMETER_END) {
@@ -18,15 +47,8 @@ fn decide_delimeters(input:&str) -> (Vec<char>, &str) {
     }
 
     let lines:Vec<&str> = input.splitn(2, CUSTOM_DELIMETER_END).collect();
-    if lines[1].contains(CUSTOM_DELIMETER_END) {
-        panic!("Specified delimeter not used");
-    }
-
     let delimeter = lines[0].replace(CUSTOM_DELIMETER_BEGIN, "").replace(CUSTOM_DELIMETER_END, "");
-    if delimeter.len() == 0 {
-        panic!("No delimeter specified");
-    }
-    (delimeter.chars().collect(), lines[1])
+    ParsedInput::new(lines[1], delimeter.chars().collect())
 }
 
 fn safe_parse(number:&str) -> u32 {
