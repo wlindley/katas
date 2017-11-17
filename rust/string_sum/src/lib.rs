@@ -1,5 +1,6 @@
 const CUSTOM_DELIMETER_BEGIN:&str = "//";
 const CUSTOM_DELIMETER_END:&str = "\n";
+const MAX_VALUE:u32 = 1000;
 
 pub fn add(numbers:&str) -> Result<u32, String> {
     let input = decide_delimeters(numbers);
@@ -9,7 +10,10 @@ pub fn add(numbers:&str) -> Result<u32, String> {
         Some(msg) => return Err(msg),
         _ => ()
     }
-    Ok(values.iter().fold(0, |accum, cur| accum + safe_parse(cur)))
+    Ok(values.iter().map(|s| match s.parse::<u32>() {
+        Ok(v) => v,
+        Err(_) => 0
+    }).filter(|&n| n <= MAX_VALUE).sum())
 }
 
 fn get_negatives_message(numbers:&Vec<&str>) -> Option<String> {
@@ -68,13 +72,6 @@ fn decide_delimeters(input:&str) -> ParsedInput {
     ParsedInput::new(lines[1], delimeter.chars().collect())
 }
 
-fn safe_parse(number:&str) -> u32 {
-    match number.parse::<u32>() {
-        Ok(v) => v,
-        Err(_) => 0
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -130,5 +127,10 @@ mod tests {
     #[test]
     fn returns_error_with_all_negative_numbers_when_negative_numbers_are_in_input() {
         assert_eq!(Err(String::from("negatives not allowed: -4 -1")), add("1,-4,-1"));
+    }
+
+    #[test]
+    fn ignores_numbers_over_1000() {
+        assert_eq!(5, add("2\n1003\n3").unwrap());
     }
 }
