@@ -1,11 +1,12 @@
 use std::collections::HashMap;
 
-const BASE_PRICE: f64 = 8.0;
 pub const FIRST: &str = "First";
 pub const SECOND: &str = "Second";
 pub const THIRD: &str = "Third";
 pub const FOURTH: &str = "Fourth";
 pub const FIFTH: &str = "Fifth";
+
+const BASE_PRICE: f64 = 8.0;
 
 pub fn calc_cost(mut books: HashMap<&str, u32>) -> f64 {
     let mut cost: f64 = 0.0;
@@ -91,6 +92,12 @@ mod tests {
     fn complex_example() {
         let books = build_basket(vec![FIRST, FIRST, SECOND, SECOND, THIRD, THIRD, FOURTH, FIFTH]);
         assert_eq!(51.2, calc_cost(books));
+    }
+
+    #[test]
+    fn another_complex_example() {
+        let books = build_basket(vec![FIRST, SECOND, THIRD, FOURTH, FIFTH, FIRST, SECOND]);
+        assert_eq!(45.2, calc_cost(books));
     }
 
     fn build_basket(books: Vec<&str>) -> HashMap<&str, u32> {
