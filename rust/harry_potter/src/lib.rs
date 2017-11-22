@@ -18,20 +18,25 @@ pub fn calc_cost(books: HashMap<&str, u32>) -> f64 {
 fn build_sets(mut books: HashMap<&str, u32>) -> Vec<HashSet<String>> {
     let mut sets: Vec<HashSet<String>> = vec![];
     loop {
-        let mut set = HashSet::new();
-        for (title, count) in &mut books {
-            if count > &mut 0 {
-                set.insert(title.to_string());
-                *count -= 1;
-            }
-        }
-        let set_size = set.len();
-        sets.push(set);
-        if 0 == set_size {
+        let set = extract_largest_set(&mut books);
+        if 0 != set.len() {
+            sets.push(set);
+        } else {
             break;
         }
     }
     sets
+}
+
+fn extract_largest_set(books: &mut HashMap<&str, u32>) -> HashSet<String> {
+    let mut set = HashSet::new();
+    for (title, count) in books {
+        if count > &mut 0 {
+            set.insert(title.to_string());
+            *count -= 1;
+        }
+    }
+    set
 }
 
 fn ensure_best_discount(sets: Vec<HashSet<String>>) -> Vec<HashSet<String>> {
@@ -63,25 +68,23 @@ struct SplitResult {
 }
 
 fn split_by_size(sets: Vec<HashSet<String>>) -> SplitResult {
-    let mut five_sets: Vec<HashSet<String>> = vec![];
-    let mut three_sets: Vec<HashSet<String>> = vec![];
-    let mut other_sets: Vec<HashSet<String>> = vec![];
+    let mut result = SplitResult {
+        five_sets: vec![],
+        three_sets: vec![],
+        other_sets: vec![]
+    };
 
     for set in sets.into_iter() {
         if 5 == set.len() {
-            five_sets.push(set);
+            result.five_sets.push(set);
         } else if 3 == set.len() {
-            three_sets.push(set);
+            result.three_sets.push(set);
         } else {
-            other_sets.push(set);
+            result.other_sets.push(set);
         }
     }
 
-    SplitResult {
-        five_sets,
-        three_sets,
-        other_sets
-    }
+    result
 }
 
 fn cost_of(sets: Vec<HashSet<String>>) -> f64 {
