@@ -52,10 +52,7 @@ fn ensure_best_discount(sets: Vec<HashSet<String>>) -> Vec<HashSet<String>> {
                 None => break
             };
 
-            let mut title = String::new();
-            {
-                title = fiver.difference(threer).next().unwrap().clone();
-            }
+            let title = fiver.difference(threer).next().unwrap().clone();
             fiver.remove(&title);
             threer.insert(title);
         }
@@ -135,7 +132,7 @@ mod tests {
     }
 
     #[test]
-    fn complex_example() {
+    fn fours_instead_of_five_and_three() {
         let books = build_basket(vec![FIRST, FIRST, SECOND, SECOND, THIRD, THIRD, FOURTH, FIFTH]);
         assert_eq!(51.2, calc_cost(books));
     }
