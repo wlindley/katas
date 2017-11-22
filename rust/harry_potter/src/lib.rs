@@ -9,7 +9,13 @@ pub const FIFTH: &str = "Fifth";
 
 const BASE_PRICE: f64 = 8.0;
 
-pub fn calc_cost(mut books: HashMap<&str, u32>) -> f64 {
+pub fn calc_cost(books: HashMap<&str, u32>) -> f64 {
+    let sets = build_sets(books);
+    let sets = ensure_best_discount(sets);
+    cost_of(sets)
+}
+
+fn build_sets(mut books: HashMap<&str, u32>) -> Vec<HashSet<String>> {
     let mut sets: Vec<HashSet<String>> = vec![];
     loop {
         let mut set = HashSet::new();
@@ -25,11 +31,38 @@ pub fn calc_cost(mut books: HashMap<&str, u32>) -> f64 {
             break;
         }
     }
-    let sets = ensure_best_discount(sets);
-    cost_of(sets)
+    sets
 }
 
 fn ensure_best_discount(sets: Vec<HashSet<String>>) -> Vec<HashSet<String>> {
+    let mut sets = split_by_size(sets);
+
+    {
+        let mut three_iter = sets.three_sets.iter_mut();
+        for fiver in sets.five_sets.iter_mut() {
+            let threer = match three_iter.next() {
+                Some(s) => s,
+                None => break
+            };
+
+            let title = fiver.difference(threer).next().unwrap().clone();
+            fiver.remove(&title);
+            threer.insert(title);
+        }
+    }
+
+    sets.other_sets.append(&mut sets.five_sets);
+    sets.other_sets.append(&mut sets.three_sets);
+    sets.other_sets
+}
+
+struct SplitResult {
+    five_sets: Vec<HashSet<String>>,
+    three_sets: Vec<HashSet<String>>,
+    other_sets: Vec<HashSet<String>>
+}
+
+fn split_by_size(sets: Vec<HashSet<String>>) -> SplitResult {
     let mut five_sets: Vec<HashSet<String>> = vec![];
     let mut three_sets: Vec<HashSet<String>> = vec![];
     let mut other_sets: Vec<HashSet<String>> = vec![];
@@ -44,23 +77,11 @@ fn ensure_best_discount(sets: Vec<HashSet<String>>) -> Vec<HashSet<String>> {
         }
     }
 
-    {
-        let mut three_iter = three_sets.iter_mut();
-        for fiver in five_sets.iter_mut() {
-            let threer = match three_iter.next() {
-                Some(s) => s,
-                None => break
-            };
-
-            let title = fiver.difference(threer).next().unwrap().clone();
-            fiver.remove(&title);
-            threer.insert(title);
-        }
+    SplitResult {
+        five_sets,
+        three_sets,
+        other_sets
     }
-
-    other_sets.append(&mut five_sets);
-    other_sets.append(&mut three_sets);
-    other_sets
 }
 
 fn cost_of(sets: Vec<HashSet<String>>) -> f64 {
