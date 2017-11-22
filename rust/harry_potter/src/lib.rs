@@ -25,60 +25,45 @@ pub fn calc_cost(mut books: HashMap<&str, u32>) -> f64 {
             break;
         }
     }
-    cost_of(ensure_best_discount(sets))
+    let sets = ensure_best_discount(sets);
+    cost_of(sets)
 }
 
-/*fn ensure_best_discount(sets: &mut Vec<HashSet<String>>) {
-    loop {
-        let mut fiver = match sets.iter().filter(|s| 5 == s.len()).next() {
-            Some(s) => s,
-            None => break
-        };
-        
-        for threer in sets.iter().filter(|s| 3 == s.len()) {
-            let title = fiver.difference(threer).next().unwrap();
-            fiver.remove(title);
-            threer.insert(title);
-            break;
+fn ensure_best_discount(sets: Vec<HashSet<String>>) -> Vec<HashSet<String>> {
+    let mut five_sets: Vec<HashSet<String>> = vec![];
+    let mut three_sets: Vec<HashSet<String>> = vec![];
+    let mut other_sets: Vec<HashSet<String>> = vec![];
+
+    for set in sets.into_iter() {
+        if 5 == set.len() {
+            five_sets.push(set);
+        } else if 3 == set.len() {
+            three_sets.push(set);
+        } else {
+            other_sets.push(set);
         }
     }
-}*/
 
-/*fn ensure_best_discount(sets: Vec<HashSet<String>>) -> Vec<HashSet<String>> {
-    let five_sets = sets.iter().filter(|s| 5 == s.len());
-    let three_sets = sets.iter().filter(|s| 3 == s.len());
-    let other_sets = sets.iter().filter(|s| 5 != s.len() && 3 != s.len());
-    let (five_sets, three_sets): (Vec<HashSet<String>>, Vec<HashSet<String>>) = five_sets.zip(three_sets).map(|(fiver, threer)| {
-        let title = fiver.difference(threer).next().unwrap().to_string();
-        let mut fiver = fiver.clone();
-        fiver.remove(&title);
-        let mut threer = threer.clone();
-        threer.insert(title);
-        (fiver, threer)
-    }).unzip();
-    other_sets.chain(five_sets.iter()).chain(three_sets.iter()).collect()
-}*/
+    {
+        let mut three_iter = three_sets.iter_mut();
+        for fiver in five_sets.iter_mut() {
+            let threer = match three_iter.next() {
+                Some(s) => s,
+                None => break
+            };
 
-fn ensure_best_discount(sets: Vec<HashSet<String>>) -> Vec<HashSet<String>> {
-    let mut result = vec![];
-    let five_sets = sets.iter().filter(|s| 5 == s.len());
-    let three_sets = sets.iter().filter(|s| 3 == s.len());
-    five_sets.zip(three_sets).map(|(fiver, threer)| {
-        let title = fiver.difference(threer).next().unwrap().to_string();
-        let mut fiver = fiver.clone();
-        fiver.remove(&title);
-        let mut threer = threer.clone();
-        threer.insert(title);
-        (fiver, threer)
-    }).for_each(|(fiver, threer)| {
-        result.push(fiver);
-        result.push(threer);
-    });
+            let mut title = String::new();
+            {
+                title = fiver.difference(threer).next().unwrap().clone();
+            }
+            fiver.remove(&title);
+            threer.insert(title);
+        }
+    }
 
-    let other_sets = sets.iter().filter(|s| 5 != s.len() && 3 != s.len());
-    other_sets.for_each(|s| result.push(s.clone()));
-    println!("final sets: {:?}", result);
-    result
+    other_sets.append(&mut five_sets);
+    other_sets.append(&mut three_sets);
+    other_sets
 }
 
 fn cost_of(sets: Vec<HashSet<String>>) -> f64 {
