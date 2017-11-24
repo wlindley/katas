@@ -1,0 +1,6 @@
+[package]
+name = "lcd_numbers"
+version = "0.1.0"
+authors = ["Walker Lindley <walker@walkerlindley.com>"]
+
+[dependencies]
