@@ -54,15 +54,19 @@ fn visualize_digit(digit: u32) -> String {
 
 fn combine(digits: Vec<String>) -> String {
     let mut result = String::new();
-    for row in 0..3 {
-        for digit in &digits {
-            let rows: Vec<_> = digit.split('\n').collect();
-            result.push_str(rows[row]);
-        }
-        if 2 != row {
-            result.push('\n');
-        }
+    result.push_str(&get_row(&digits, 0, "\n"));
+    result.push_str(&get_row(&digits, 1, "\n"));
+    result.push_str(&get_row(&digits, 2, ""));
+    result
+}
+
+fn get_row(digits: &Vec<String>, row: usize, terminator: &str) -> String {
+    let mut result = String::new();
+    for digit in digits {
+        let rows: Vec<_> = digit.split('\n').collect();
+        result.push_str(rows[row]);
     }
+    result.push_str(terminator);
     result
 }
 
