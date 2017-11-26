@@ -1,3 +1,17 @@
+const NUMBERS: &'static [&'static str] = &[
+" ___ |   ||   ||   ||___|", //0
+"         |    |    |    |", //1
+" ___     | ___||    |___ ", //2
+" ___     | ___|    | ___|", //3
+"     |   ||___|    |    |", //4
+" ___ |    |___     | ___|", //5
+" ___ |    |___ |   ||___|", //6
+" ___     |    |    |    |", //7
+" ___ |   ||___||   ||___|", //8
+" ___ |   ||___|    | ___|"  //9
+ ];
+ const DEFAULT_SIZE: u32 = 5;
+
 pub struct LcdPrinter {
     char_width: u32,
     char_height: u32
@@ -28,12 +42,10 @@ impl LcdPrinter {
 
     fn combine<T>(&self, mut digits: Vec<T>) -> String
     where T : Iterator<Item = char> {
-        println!(" ");
         let mut result = String::new();
         for row in 0..self.char_height {
             for digit in &mut digits {
                 let row: String = digit.take(self.char_width as usize).collect();
-                println!("Adding row: {}", row);
                 result.push_str(&row);
             }
             if self.char_height-1 != row {
@@ -92,114 +104,25 @@ impl DigitVisualizer {
         self.index / self.width
     }
 
-    fn next_zero(&self) -> char {
-        let x = self.x();
-        let y = self.y();
-        if (0 == x && 0 != y) || (self.width-1 == x && 0 != y) {
-            '|'
-        } else if 0 == y && 0 != x && self.width-1 != x {
-            '_'
-        } else if self.height-1 == y {
-            '_'
-        } else {
-            ' '
-        }
+    fn corrected_index(&self) -> u32 {
+        let corrected_x = correct_coord(self.x(), self.width);
+        let corrected_y = correct_coord(self.y(), self.height);
+        let corrected_index = (DEFAULT_SIZE * corrected_y) + corrected_x;
+        corrected_index
     }
+}
 
-    fn next_one(&self) -> char {
-        let x = self.x();
-        let y = self.y();
-        if 0 != y && self.width-1 == x {
-            '|'
-        } else {
-            ' '
-        }
-    }
-
-    fn next_two(&self) -> char {
-        let x = self.x();
-        let y = self.y();
-        if (0 == y || self.height-1 == y) && (0 != x && self.width-1 != x) {
-            '_'
-        } else if self.height/2 == y {
-            if 0 == x {
-                ' '
-            } else if self.width-1 == x {
-                '|'
-            } else {
-                '_'
-            }
-        } else if self.width-1 == x && self.height/2 >= y && 0 < y {
-            '|'
-        } else if 0 == x && self.height/2 < y {
-            '|'
-        } else {
-            ' '
-        }
-    }
-
-    fn next_three(&self) -> char {
-        let x = self.x();
-        let y = self.y();
-        if (0 != x && self.width-1 != x) && (0 == y || self.height/2 == y || self.height-1 == y) {
-            '_'
-        } else if self.width-1 == x && 0 != y {
-            '|'
-        } else {
-            ' '
-        }
-    }
-
-    fn next_four(&self) -> char {
-        let x = self.x();
-        let y = self.y();
-        if 0 < y && self.width-1 == x {
-            '|'
-        } else if 0 < y && self.height/2 >= y && 0 == x {
-            '|'
-        } else if self.height/2 == y {
-            '_'
-        } else {
-            ' '
-        }
-    }
-
-    fn next_five(&self) -> char {
-        let x = self.x();
-        let y = self.y();
-        if (0 == y || self.height-1 == y) && (0 != x && self.width-1 != x) {
-            '_'
-        } else if self.height/2 == y {
-            if self.width-1 == x {
-                ' '
-            } else if 0 == x {
-                '|'
-            } else {
-                '_'
-            }
-        } else if 0 == x && self.height/2 >= y && 0 < y {
-            '|'
-        } else if self.width-1 == x && self.height/2 < y {
-            '|'
-        } else {
-            ' '
-        }
-    }
-
-    fn next_six(&self) -> char {
-        ' '
-    }
-
-    fn next_seven(&self) -> char {
-        ' '
-    }
-
-    fn next_eight(&self) -> char {
-        ' '
-    }
-
-    fn next_nine(&self) -> char {
-        ' '
+fn correct_coord(coord: u32, size: u32) -> u32 {
+    if 0 == coord {
+        0
+    } else if size/2 == coord {
+        DEFAULT_SIZE / 2
+    } else if size-1 == coord {
+        DEFAULT_SIZE - 1
+    } else if size/2 > coord {
+        1
+    } else {
+        DEFAULT_SIZE - 2
     }
 }
 
@@ -210,27 +133,8 @@ impl Iterator for DigitVisualizer {
         if self.index >= self.width * self.height {
             return None;
         }
-        let symbol = if 1 == self.digit {
-            self.next_one()
-        } else if 2 == self.digit {
-            self.next_two()
-        } else if 3 == self.digit {
-            self.next_three()
-        } else if 4 == self.digit {
-            self.next_four()
-        } else if 5 == self.digit {
-            self.next_five()
-        } else if 6 == self.digit {
-            self.next_six()
-        } else if 7 == self.digit {
-            self.next_seven()
-        } else if 8 == self.digit {
-            self.next_eight()
-        } else if 9 == self.digit {
-            self.next_nine()
-        } else {
-            self.next_zero()
-        };
+        let digit_viz = NUMBERS[self.digit as usize];
+        let symbol = digit_viz.chars().nth(self.corrected_index() as usize).unwrap();
         self.index += 1;
         Some(symbol)
     }
