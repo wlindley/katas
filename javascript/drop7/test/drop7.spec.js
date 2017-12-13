@@ -3,6 +3,7 @@ const sinon = require('sinon');
 const expect = chai.expect;
 chai.use(require('sinon-chai'));
 const Drop7 = require('../src/drop7');
+const Cell = require('../src/cell');
 
 describe('Drop7', () => {
 	let testObj, cols, rows, view, board;
@@ -30,6 +31,6 @@ describe('Drop7', () => {
 	});
 
 	function expectEmpty(row, col) {
-		expect(board.at(row, col)).to.equal('.');
+		expect(board.at(row, col)).to.equal(Cell.Empty);
 	}
 });

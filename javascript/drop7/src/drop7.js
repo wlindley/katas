@@ -1,3 +1,5 @@
+const Cell = require('./cell');
+
 class Drop7 {
 	constructor(rows, cols, view) {
 		this._board = new Board(rows, cols);
@@ -24,7 +26,7 @@ class Board {
 	}
 
 	at(row, col) {
-		return '.';
+		return Cell.Empty;
 	}
 }
 
