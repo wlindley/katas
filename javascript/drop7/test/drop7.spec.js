@@ -5,21 +5,31 @@ chai.use(require('sinon-chai'));
 const Drop7 = require('../src/drop7');
 
 describe('Drop7', () => {
-	let testObj, width, height, view;
+	let testObj, cols, rows, view, board;
 
 	beforeEach(() => {
-		width = 2;
-		height = 2;
+		board = null;
+		cols = 2;
+		rows = 2;
 		view = {displayBoard: sinon.spy()};
-		testObj = new Drop7(width, height, view);
+		testObj = new Drop7(rows, cols, view);
 	});
 
 	describe('start', () => {
-		it('calls displayBoard with 2D array of expected size', () => {
+		it('calls displayBoard with empty board', () => {
 			testObj.start();
-			expect(view.displayBoard).to.have.been.calledWithMatch(sinon.match(value => {
-				return value.length == height && value[0].length == width;
+			expect(view.displayBoard).to.have.been.calledWithMatch(sinon.match(b => {
+				board = b;
+				expectEmpty(0, 0);
+				expectEmpty(0, 1);
+				expectEmpty(1, 0);
+				expectEmpty(1, 1);
+				return board.rows == rows && board.cols == cols;
 			}));
 		});
 	});
+
+	function expectEmpty(row, col) {
+		expect(board.at(row, col)).to.equal('.');
+	}
 });

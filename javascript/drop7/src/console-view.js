@@ -1,9 +1,9 @@
 class ConsoleView {
 	displayBoard(board) {
 		let display = '';
-		for (let y = 0; y < board.length; y++) {
-			for (let x = 0; x < board[y].length; x++)
-				display += board[y][x];
+		for (let r = 0; r < board.rows; r++) {
+			for (let c = 0; c < board.cols; c++)
+				display += board.at(r, c);
 			display += "\n";
 		}
 		console.log(display);
