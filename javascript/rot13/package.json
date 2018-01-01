@@ -1,0 +1,25 @@
+{
+  "name": "rot13",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wlindley/katas.git"
+  },
+  "author": "Walker Lindley",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/wlindley/katas/issues"
+  },
+  "homepage": "https://github.com/wlindley/katas#readme",
+  "devDependencies": {
+    "chai": "^4.1.2",
+    "istanbul": "^0.4.5",
+    "mocha": "^4.1.0",
+    "sinon": "^4.1.3"
+  }
+}
