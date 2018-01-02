@@ -51,11 +51,19 @@ function rot13(plaintext, callback) {
 }
 
 function rot13Char(char) {
-	if ('a' <= char && char <= 'z')
+	if (isLowerCase(char))
 		return rotate(char, charCodes['a']);
-	if ('A' <= char && char <= 'Z')
+	if (isUpperCase(char))
 		return rotate(char, charCodes['A']);
 	return char;
+}
+
+function isLowerCase(char) {
+	return 'a' <= char && char <= 'z';
+}
+
+function isUpperCase(char) {
+	return 'A' <= char && char <= 'Z';
 }
 
 function rotate(char, base) {
