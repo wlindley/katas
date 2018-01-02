@@ -18,32 +18,52 @@ describe('App', () => {
 
 	describe('execute', () => {
 		it('writes rotated input to output', (done) => {
-			fileFake.setReadResult('The dog barks at midnight.');
+			trainFileContents('The dog barks at midnight.');
 			testObj.execute(() => {
-				expect(fileFake.writtenInfo.filename).to.equal(output);
-				expect(fileFake.writtenInfo.data).to.equal('Gur qbt onexf ng zvqavtug.');
+				verifyWrittenFilename(output);
+				verifyWrittenData('Gur qbt onexf ng zvqavtug.');
 				done();
 			});
 		});
 
 		it('writes to test directory in development', (done) => {
-			fileFake.setReadResult('');
-			processFake.env.NODE_ENV = 'development';
+			trainFileContents();
+			trainEnvironment('development');
 			testObj.execute(() => {
-				expect(fileFake.readInfo.filename).to.equal(path.join('test', input));
-				expect(fileFake.writtenInfo.filename).to.equal(path.join('test', output));
+				verifyReadFilename(path.join('test', input));
+				verifyWrittenFilename(path.join('test', output));
 				done();
 			});
 		});
 
 		it('writes to current directory in production', (done) => {
-			fileFake.setReadResult('');
-			processFake.env.NODE_ENV = 'production';
+			trainFileContents();
+			trainEnvironment('production');
 			testObj.execute(() => {
-				expect(fileFake.readInfo.filename).to.equal(input);
-				expect(fileFake.writtenInfo.filename).to.equal(output);
+				verifyReadFilename(input);
+				verifyWrittenFilename(output);
 				done();
 			});
 		});
 	});
+
+	function trainFileContents(contents='') {
+		fileFake.setReadResult(contents);
+	}
+
+	function trainEnvironment(environment) {
+		processFake.env.NODE_ENV = environment;
+	}
+
+	function verifyWrittenFilename(expected) {
+		expect(fileFake.writtenInfo.filename).to.equal(expected);
+	}
+
+	function verifyWrittenData(expected) {
+		expect(fileFake.writtenInfo.data).to.equal(expected);
+	}
+
+	function verifyReadFilename(expected) {
+		expect(fileFake.readInfo.filename).to.equal(expected);
+	}
 });

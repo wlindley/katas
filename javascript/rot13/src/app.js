@@ -35,9 +35,13 @@ class App {
 	}
 
 	_modifyPath(filePath) {
-		if ('development' === this._process.env.NODE_ENV)
+		if (this._isDevelopment)
 			return path.join('test', filePath);
 		return filePath;
+	}
+
+	get _isDevelopment() {
+		return 'development' === this._process.env.NODE_ENV;
 	}
 }
 
