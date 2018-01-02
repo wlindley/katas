@@ -59,7 +59,10 @@ function rot13Char(char) {
 }
 
 function rotate(char, base) {
-	return String.fromCharCode((((char.charCodeAt(0) - base) + 13) % 26) + base);
+	const alphaIndex = char.charCodeAt(0) - base;
+	const rotatedIndex = (alphaIndex + 13) % 26;
+	const rotatedCode = rotatedIndex + base;
+	return String.fromCharCode(rotatedCode);
 }
 
 module.exports = App;
