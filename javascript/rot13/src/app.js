@@ -18,10 +18,20 @@ class App {
 
 	execute(callback) {
 		async.waterfall([
-			(cb) => this._file.read(this._modifyPath(this._input), cb),
+			(cb) => this._readFile(cb),
 			(plaintext, cb) => rot13(plaintext, cb),
-			(ciphertext, cb) => this._file.write(this._modifyPath(this._output), ciphertext, cb)
+			(ciphertext, cb) => this._writeFile(ciphertext, cb)
 		], callback);
+	}
+
+	_readFile(callback) {
+		const modifiedPath = this._modifyPath(this._input);
+		this._file.read(modifiedPath, callback);
+	}
+
+	_writeFile(ciphertext, callback) {
+		const modifiedPath = this._modifyPath(this._output);
+		this._file.write(modifiedPath, ciphertext, callback);
 	}
 
 	_modifyPath(filePath) {
