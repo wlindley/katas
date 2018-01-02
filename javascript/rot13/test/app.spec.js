@@ -26,6 +26,14 @@ describe('App', () => {
 			});
 		});
 
+		it('closes output file when complete', (done) => {
+			trainFileContents();
+			testObj.execute(() => {
+				verifyOutputFileClosed();
+				done();
+			});
+		});
+
 		it('writes to test directory in development', (done) => {
 			trainFileContents();
 			trainEnvironment('development');
@@ -65,5 +73,9 @@ describe('App', () => {
 
 	function verifyReadFilename(expected) {
 		expect(fileFake.readInfo.filename).to.equal(expected);
+	}
+
+	function verifyOutputFileClosed() {
+		expect(fileFake.writtenInfo.wasClosed).to.be.true;
 	}
 });

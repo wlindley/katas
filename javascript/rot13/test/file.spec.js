@@ -15,9 +15,11 @@ describe('File', () => {
 	});
 
 	describe('read', () => {
-		it('calls back with contents of file as string', (done) => {
-			testObj.read('test/in.txt', (err, contents) => {
-				expect(err).not.to.exist;
+		it('returns stream that can be read from', (done) => {
+			const stream = testObj.read('test/in.txt');
+			let contents = '';
+			stream.on('data', (chunk) => contents += chunk);
+			stream.on('close', () => {
 				expect(contents).to.equal("The dog barks at midnight");
 				done();
 			});
@@ -27,10 +29,12 @@ describe('File', () => {
 	describe('write', () => {
 		it('writes data to given file', (done) => {
 			const filePath = 'test/out.txt';
-			const data = 'hello, world! this is some data';
-			testObj.write(filePath, data, () => {
-				testObj.read(filePath, (err, contents) => {
-					expect(contents).to.equal(data);
+			const stream = testObj.write(filePath);
+			stream.write('hello, world!');
+			stream.write(' this is some data');
+			stream.close(() => {
+				fs.readFile(filePath, 'utf-8', (err, contents) => {
+					expect(contents).to.equal('hello, world! this is some data');
 					done();
 				});
 			});

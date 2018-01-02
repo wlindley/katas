@@ -17,21 +17,24 @@ class App {
 	}
 
 	execute(callback) {
-		async.waterfall([
-			(cb) => this._readFile(cb),
-			(plaintext, cb) => rot13(plaintext, cb),
-			(ciphertext, cb) => this._writeFile(ciphertext, cb)
-		], callback);
+		const inputStream = this._getReadStream();
+		const outputStream = this._getWriteStream();
+		inputStream.on('data', (chunk) => {
+			outputStream.write(rot13(chunk));
+		});
+		inputStream.on('close', () => {
+			outputStream.close(callback);
+		});
 	}
 
-	_readFile(callback) {
+	_getReadStream() {
 		const modifiedPath = this._modifyPath(this._input);
-		this._file.read(modifiedPath, callback);
+		return this._file.read(modifiedPath);
 	}
 
-	_writeFile(ciphertext, callback) {
+	_getWriteStream() {
 		const modifiedPath = this._modifyPath(this._output);
-		this._file.write(modifiedPath, ciphertext, callback);
+		return this._file.write(modifiedPath);
 	}
 
 	_modifyPath(filePath) {
@@ -45,9 +48,8 @@ class App {
 	}
 }
 
-function rot13(plaintext, callback) {
-	const ciphertext = Array.from(plaintext).map(rot13Char).join('');
-	callback(null, ciphertext);
+function rot13(plaintext) {
+	return Array.from(plaintext).map(rot13Char).join('');
 }
 
 function rot13Char(char) {
