@@ -1,4 +1,6 @@
 const async = require('async');
+const process = require('process');
+const path = require('path');
 const File = require('./file');
 
 const charCodes = {
@@ -11,14 +13,21 @@ class App {
 		this._input = config.input;
 		this._output = config.output;
 		this._file = new File();
+		this._process = process;
 	}
 
 	execute(callback) {
 		async.waterfall([
-			(cb) => this._file.read(this._input, cb),
+			(cb) => this._file.read(this._modifyPath(this._input), cb),
 			(plaintext, cb) => rot13(plaintext, cb),
-			(ciphertext, cb) => this._file.write(this._output, ciphertext, cb)
+			(ciphertext, cb) => this._file.write(this._modifyPath(this._output), ciphertext, cb)
 		], callback);
+	}
+
+	_modifyPath(filePath) {
+		if ('development' === this._process.env.NODE_ENV)
+			return path.join('test', filePath);
+		return filePath;
 	}
 }
 

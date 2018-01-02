@@ -2,6 +2,7 @@ const async = require('async');
 
 class FileFake {
 	read(filename, callback) {
+		this.readInfo = {filename};
 		async.nextTick(() => callback(null, this._readData));
 	}
 
