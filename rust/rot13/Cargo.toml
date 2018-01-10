@@ -1,0 +1,6 @@
+[package]
+name = "rot13"
+version = "0.1.0"
+authors = ["Walker Lindley <walker@walkerlindley.com>"]
+
+[dependencies]
