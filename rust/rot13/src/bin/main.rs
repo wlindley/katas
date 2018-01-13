@@ -8,5 +8,6 @@ fn main() {
 	}
 	let input_file = args[1].clone();
 	let output_file = args[2].clone();
-	rot13::rotate_file(input_file, output_file);
+	let is_production = env::var("DEV").is_err();
+	rot13::rotate_file(input_file, output_file, rot13::Config::new(is_production));
 }
