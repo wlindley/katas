@@ -25,22 +25,22 @@ impl Config {
     }
 }
 
-pub fn rotate_file(input: String, output: String, config: Config) {
+pub fn rotate_file(input: &str, output: &str, config: Config) {
     rotate_impl(input, output, config, &StandardFileIO::new());
 }
 
 static TEST_PATH: &'static str = "test/";
 
-fn rotate_impl<T>(input: String, output: String, config: Config, file_io: &T) where T: FileIO {
+fn rotate_impl<T>(input: &str, output: &str, config: Config, file_io: &T) where T: FileIO {
     let input = decide_path(input, &config);
     let output = decide_path(output, &config);
-    let rotated_contents: String = file_io.read(input).chars().map(rotate).collect();
-    file_io.write(output, rotated_contents);
+    let rotated_contents: String = file_io.read(input.as_str()).chars().map(rotate).collect();
+    file_io.write(output.as_str(), rotated_contents);
 }
 
-fn decide_path(path: String, config: &Config) -> String {
+fn decide_path(path: &str, config: &Config) -> String {
     if config.is_production {
-        path
+        String::from(path)
     } else {
         format!("{}{}", TEST_PATH, path)
     }
@@ -64,8 +64,8 @@ fn rotate_char(input: char, base_char: char) -> char {
 }
 
 trait FileIO {
-    fn read(&self, filename: String) -> String;
-    fn write(&self, filename: String, contents: String);
+    fn read(&self, filename: &str) -> String;
+    fn write(&self, filename: &str, contents: String);
 }
 
 struct StandardFileIO;
@@ -77,14 +77,14 @@ impl StandardFileIO {
 }
 
 impl FileIO for StandardFileIO {
-     fn read(&self, filename: String) -> String {
+     fn read(&self, filename: &str) -> String {
          let mut file = File::open(filename).expect("file not found");
          let mut contents = String::default();
          file.read_to_string(&mut contents).expect("could not read file");
          contents
      }
 
-     fn write(&self, filename: String, contents: String) {
+     fn write(&self, filename: &str, contents: String) {
          let mut file = File::create(filename).expect("could not create file");
          file.write_all(contents.as_bytes()).expect("failed to write file contents");
      }
@@ -103,10 +103,10 @@ mod rotate_tests {
     }
 
     impl MockFileIO {
-        fn new(read_contents: String) -> MockFileIO {
+        fn new(read_contents: &str) -> MockFileIO {
             MockFileIO {
                 read_filename: RefCell::default(),
-                read_contents,
+                read_contents: String::from(read_contents),
                 written_contents: RefCell::default(),
                 written_filename: RefCell::default(),
             }
@@ -126,22 +126,22 @@ mod rotate_tests {
     }
 
     impl FileIO for MockFileIO {
-        fn read(&self, filename: String) -> String {
-            *self.read_filename.borrow_mut() = filename;
+        fn read(&self, filename: &str) -> String {
+            *self.read_filename.borrow_mut() = String::from(filename);
             self.read_contents.clone()
         }
 
-        fn write(&self, filename: String, contents: String) {
-            *self.written_filename.borrow_mut() = filename;
+        fn write(&self, filename: &str, contents: String) {
+            *self.written_filename.borrow_mut() = String::from(filename);
             *self.written_contents.borrow_mut() = contents;
         }
     }
 
     #[test]
     fn writes_contents_of_input_with_rot13_applied() {
-        let mock_fileio = MockFileIO::new(String::from("Testing, 1, 2, 3"));
+        let mock_fileio = MockFileIO::new("Testing, 1, 2, 3");
 
-        rotate_impl(String::from("in.txt"), String::from("out.txt"), Config::production(), &mock_fileio);
+        rotate_impl("in.txt", "out.txt", Config::production(), &mock_fileio);
 
         mock_fileio.verify_read_filename("in.txt");
         mock_fileio.verify_written_filename("out.txt");
@@ -150,18 +150,18 @@ mod rotate_tests {
 
     #[test]
     fn reads_from_test_folder_when_in_debug_mode() {
-        let mock_fileio = MockFileIO::new(String::from("Testing, 1, 2, 3"));
+        let mock_fileio = MockFileIO::new("Testing, 1, 2, 3");
 
-        rotate_impl(String::from("in.txt"), String::from("out.txt"), Config::debug(), &mock_fileio);
+        rotate_impl("in.txt", "out.txt", Config::debug(), &mock_fileio);
 
         mock_fileio.verify_read_filename("test/in.txt");
     }
 
     #[test]
     fn writes_to_test_folder_when_in_debug_mode() {
-        let mock_fileio = MockFileIO::new(String::from("Testing, 1, 2, 3"));
+        let mock_fileio = MockFileIO::new("Testing, 1, 2, 3");
 
-        rotate_impl(String::from("in.txt"), String::from("out.txt"), Config::debug(), &mock_fileio);
+        rotate_impl("in.txt", "out.txt", Config::debug(), &mock_fileio);
 
         mock_fileio.verify_written_filename("test/out.txt");
     }
@@ -174,20 +174,20 @@ mod fileio_tests {
     #[test]
     fn read_returns_contents_of_file() {
         let fileio = StandardFileIO::new();
-        let contents = fileio.read(String::from("in.txt"));
+        let contents = fileio.read("in.txt");
         assert_eq!(String::from("The dog barks at midnight."), contents);
     }
 
     #[test]
     fn write_writes_contents_to_file() {
-        let filename = String::from("out.txt");
+        let filename = "out.txt";
         std::fs::remove_file(&filename).ok();
 
         let fileio = StandardFileIO::new();
         let contents = String::from("The dog barks at midnight.");
-        fileio.write(filename.clone(), contents.clone());
-        assert_eq!(contents, fileio.read(filename.clone()));
+        fileio.write(filename, contents.clone());
+        assert_eq!(contents, fileio.read(filename));
 
-        std::fs::remove_file(&filename).ok();
+        std::fs::remove_file(filename).ok();
     }
 }
