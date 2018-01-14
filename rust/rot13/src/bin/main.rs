@@ -9,5 +9,5 @@ fn main() {
 	let input_file = args[1].as_str();
 	let output_file = args[2].as_str();
 	let is_production = env::var("DEV").is_err();
-	rot13::rotate_file(input_file, output_file, rot13::Config::new(is_production));
+	rot13::rotate_file(input_file, output_file, rot13::config::new(is_production));
 }
