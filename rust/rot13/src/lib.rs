@@ -111,6 +111,18 @@ mod rotate_tests {
                 written_filename: RefCell::default(),
             }
         }
+
+        fn verify_read_filename(&self, expected: &str) {
+            assert_eq!(String::from(expected), *self.read_filename.borrow());
+        }
+
+        fn verify_written_filename(&self, expected: &str) {
+            assert_eq!(String::from(expected), *self.written_filename.borrow());
+        }
+
+        fn verify_written_contents(&self, expected: &str) {
+            assert_eq!(String::from(expected), *self.written_contents.borrow());
+        }
     }
 
     impl FileIO for MockFileIO {
@@ -128,29 +140,30 @@ mod rotate_tests {
     #[test]
     fn writes_contents_of_input_with_rot13_applied() {
         let mock_fileio = MockFileIO::new(String::from("Testing, 1, 2, 3"));
+
         rotate_impl(String::from("in.txt"), String::from("out.txt"), Config::production(), &mock_fileio);
 
-        assert_eq!(String::from("in.txt"), *mock_fileio.read_filename.borrow());
-        assert_eq!(String::from("out.txt"), *mock_fileio.written_filename.borrow());
-        assert_eq!(String::from("Grfgvat, 1, 2, 3"), *mock_fileio.written_contents.borrow());
+        mock_fileio.verify_read_filename("in.txt");
+        mock_fileio.verify_written_filename("out.txt");
+        mock_fileio.verify_written_contents("Grfgvat, 1, 2, 3");
     }
 
     #[test]
     fn reads_from_test_folder_when_in_debug_mode() {
-        let config = Config::debug();
         let mock_fileio = MockFileIO::new(String::from("Testing, 1, 2, 3"));
-        rotate_impl(String::from("in.txt"), String::from("out.txt"), config, &mock_fileio);
 
-        assert_eq!(String::from("test/in.txt"), *mock_fileio.read_filename.borrow());
+        rotate_impl(String::from("in.txt"), String::from("out.txt"), Config::debug(), &mock_fileio);
+
+        mock_fileio.verify_read_filename("test/in.txt");
     }
 
     #[test]
     fn writes_to_test_folder_when_in_debug_mode() {
-        let config = Config::debug();
         let mock_fileio = MockFileIO::new(String::from("Testing, 1, 2, 3"));
-        rotate_impl(String::from("in.txt"), String::from("out.txt"), config, &mock_fileio);
 
-        assert_eq!(String::from("test/out.txt"), *mock_fileio.written_filename.borrow());
+        rotate_impl(String::from("in.txt"), String::from("out.txt"), Config::debug(), &mock_fileio);
+
+        mock_fileio.verify_written_filename("test/out.txt");
     }
 }
 
