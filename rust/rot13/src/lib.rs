@@ -12,8 +12,8 @@ static TEST_PATH: &'static str = "test/";
 fn rotate_impl<T>(input: &str, output: &str, config: Config, file_io: &T) where T: FileIO {
     let input = decide_path(input, &config);
     let output = decide_path(output, &config);
-    let rotated_contents: String = file_io.read(input.as_str()).chars().map(rotate).collect();
-    file_io.write(output.as_str(), rotated_contents);
+    let rotated_contents: FileContents = file_io.read(input.as_str()).map(rotate_string);
+    //file_io.write(output.as_str(), rotated_contents);
 }
 
 fn decide_path(path: &str, config: &Config) -> String {
@@ -22,6 +22,10 @@ fn decide_path(path: &str, config: &Config) -> String {
     } else {
         format!("{}{}", TEST_PATH, path)
     }
+}
+
+fn rotate_string(input: String) -> String {
+    input.chars().map(rotate).collect::<String>()
 }
 
 fn rotate(input: char) -> char {
@@ -106,14 +110,14 @@ mod tests {
     }
 
     impl FileIO for MockFileIO {
-        fn read(&self, filename: &str) -> String {
+        fn read(&self, filename: &str) -> Box<FileContents> {
             *self.read_filename.borrow_mut() = String::from(filename);
-            self.read_contents.clone()
+            Box::new(MockFileContents::new(self.read_contents.as_str()))
         }
 
-        fn write(&self, filename: &str, contents: String) {
+        fn write(&self, filename: &str, contents: Box<FileContents>) {
             *self.written_filename.borrow_mut() = String::from(filename);
-            *self.written_contents.borrow_mut() = contents;
+            *self.written_contents.borrow_mut() = contents.collect::<String>();
         }
     }
 }
