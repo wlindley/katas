@@ -9,7 +9,7 @@ include_directories(catch)
 file(GLOB SOURCES src/*.cpp)
 file(GLOB TEST_SOURCES test/*.cpp)
 
-add_executable(PrimeFactors ${SOURCES})
+add_executable(PrimeFactors main.cpp ${SOURCES})
 
-add_executable(tests ${TEST_SOURCES})
+add_executable(tests ${TEST_SOURCES} ${SOURCES})
 add_test(NAME Tests COMMAND tests)
