@@ -3,12 +3,15 @@
 std::vector<int> primeFactors(int number)
 {
 	auto factors = std::vector<int>{};
-	if (number >= 2 && number % 2 == 0)
+	for (auto i = 2; i < number; i++)
 	{
-		factors.push_back(2);
-		number /= 2;
+		while (number >= 2 && number % i == 0)
+		{
+			factors.push_back(i);
+			number /= i;
+		}
 	}
-	if (2 <= number)
+	if (number >= 2)
 		factors.push_back(number);
 	return factors;
 }

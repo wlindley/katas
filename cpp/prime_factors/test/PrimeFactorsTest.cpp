@@ -46,3 +46,23 @@ TEST_CASE("Factors of 8 are 2, 2, 2")
 {
 	REQUIRE(primeFactors(8) == std::vector<int>{2, 2, 2});
 }
+
+TEST_CASE("Factors of 9 are 3, 3")
+{
+	REQUIRE(primeFactors(9) == std::vector<int>{3, 3});
+}
+
+TEST_CASE("Factors of 10 are 2, 5")
+{
+	REQUIRE(primeFactors(10) == std::vector<int>{2, 5});
+}
+
+TEST_CASE("Factors of 998 are 2, 499")
+{
+	REQUIRE(primeFactors(998) == std::vector<int>{2, 499});
+}
+
+TEST_CASE("Factors of 999 are 3, 3, 3, 37")
+{
+	REQUIRE(primeFactors(999) == std::vector<int>{3, 3, 3, 37});
+}
