@@ -2,67 +2,72 @@
 #include "PrimeFactor.h"
 #include <vector>
 
+void verify(int number, std::vector<int> factors)
+{
+	REQUIRE(primeFactors(number) == factors);
+}
+
 TEST_CASE("Factors of 0 are nothing")
 {
-	REQUIRE(primeFactors(0) == std::vector<int>{});
+	verify(0, {});
 }
 
 TEST_CASE("Factors of 1 are nothing")
 {
-	REQUIRE(primeFactors(1) == std::vector<int>{});
+	verify(1, {});
 }
 
 TEST_CASE("Factors of 2 are 2")
 {
-	REQUIRE(primeFactors(2) == std::vector<int>{2});
+	verify(2, {2});
 }
 
 TEST_CASE("Factors of 3 are 3")
 {
-	REQUIRE(primeFactors(3) == std::vector<int>{3});
+	verify(3, {3});
 }
 
 TEST_CASE("Factors of 4 are 2, 2")
 {
-	REQUIRE(primeFactors(4) == std::vector<int>{2, 2});
+	verify(4, {2, 2});
 }
 
 TEST_CASE("Factors of 5 are 5")
 {
-	REQUIRE(primeFactors(5) == std::vector<int>{5});
+	verify(5, {5});
 }
 
 TEST_CASE("Factors of 6 are 2, 3")
 {
-	REQUIRE(primeFactors(6) == std::vector<int>{2, 3});
+	verify(6, {2, 3});
 }
 
 TEST_CASE("Factors of 7 are 7")
 {
-	REQUIRE(primeFactors(7) == std::vector<int>{7});
+	verify(7, {7});
 }
 
 TEST_CASE("Factors of 8 are 2, 2, 2")
 {
-	REQUIRE(primeFactors(8) == std::vector<int>{2, 2, 2});
+	verify(8, {2, 2, 2});
 }
 
 TEST_CASE("Factors of 9 are 3, 3")
 {
-	REQUIRE(primeFactors(9) == std::vector<int>{3, 3});
+	verify(9, {3, 3});
 }
 
 TEST_CASE("Factors of 10 are 2, 5")
 {
-	REQUIRE(primeFactors(10) == std::vector<int>{2, 5});
+	verify(10, {2, 5});
 }
 
 TEST_CASE("Factors of 998 are 2, 499")
 {
-	REQUIRE(primeFactors(998) == std::vector<int>{2, 499});
+	verify(998, {2, 499});
 }
 
 TEST_CASE("Factors of 999 are 3, 3, 3, 37")
 {
-	REQUIRE(primeFactors(999) == std::vector<int>{3, 3, 3, 37});
+	verify(999, {3, 3, 3, 37});
 }
