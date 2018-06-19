@@ -71,7 +71,9 @@ func validateNumbers(numbers []int) error {
 func sum(numbers []int) int {
 	total := 0
 	for _, n := range numbers {
-		total += n
+		if n <= 1000 {
+			total += n
+		}
 	}
 	return total
 }
@@ -128,7 +130,8 @@ func ConcurrentAdd(input string) (int, error) {
 func concurrentNumeralsToInts(numerals []string) (<-chan int, <-chan int, <-chan error) {
 	numeralChan := numeralsToChannel(numerals)
 	numberChan, errs := numeralsToNumbers(numeralChan)
-	valid, invalid := validateAllNumbers(numberChan)
+	smallNumberChan := ignoreLargeNumbers(numberChan)
+	valid, invalid := validateAllNumbers(smallNumberChan)
 	return valid, invalid, errs
 }
 
@@ -159,6 +162,19 @@ func numeralsToNumbers(numerals <-chan string) (<-chan int, <-chan error) {
 		close(errs)
 	}()
 	return out, errs
+}
+
+func ignoreLargeNumbers(numbers <-chan int) <-chan int {
+	out := make(chan int)
+	go func() {
+		for n := range numbers {
+			if n <= 1000 {
+				out <- n
+			}
+		}
+		close(out)
+	}()
+	return out
 }
 
 func validateAllNumbers(numbers <-chan int) (<-chan int, <-chan int) {

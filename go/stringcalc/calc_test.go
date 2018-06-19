@@ -23,6 +23,7 @@ func TestAdd(t *testing.T) {
 		{Name: "Custom Separator", Input: "//;\n1;1;1", Expected: 3},
 		{Name: "Reject Negatives", Input: "2,3,-1", Error: "negatives not allowed -1"},
 		{Name: "Reject Multiple Negatives", Input: "-1,3,-2", Error: "negatives not allowed -1 -2"},
+		{Name: "Ignore Numbers Over 1000", Input: "2,1001", Expected: 2},
 	}
 
 	for _, x := range tt {
@@ -64,6 +65,7 @@ func TestConcurrentAdd(t *testing.T) {
 		{Name: "Custom Separator", Input: "//;\n1;1;1", Expected: 3},
 		{Name: "Reject Negatives", Input: "2,3,-1", Error: "negatives not allowed -1"},
 		{Name: "Reject Multiple Negatives", Input: "-1,3,-2", Error: "negatives not allowed -1 -2"},
+		{Name: "Ignore Numbers Over 1000", Input: "2,1001", Expected: 2},
 	}
 
 	for _, x := range tt {
