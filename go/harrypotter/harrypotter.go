@@ -13,7 +13,7 @@ func CalculatePrice(books []int) float64 {
 	return totalPriceOf(sets)
 }
 
-type bookSet []int
+type bookSet []bool
 
 func (set bookSet) price() float64 {
 	numBooks := set.count()
@@ -22,8 +22,8 @@ func (set bookSet) price() float64 {
 
 func (set bookSet) count() int {
 	count := 0
-	for _, num := range set {
-		if num > 0 {
+	for _, present := range set {
+		if present {
 			count++
 		}
 	}
@@ -43,11 +43,11 @@ func buildSets(books []int) []bookSet {
 }
 
 func extractSet(books []int, maxSize int) (bookSet, bool) {
-	counts := make([]int, NumBooks)
+	counts := make([]bool, NumBooks)
 	setSize := 0
 	for i, count := range books {
 		if count > 0 && setSize < maxSize {
-			counts[i] = 1
+			counts[i] = true
 			books[i]--
 			setSize++
 		}
@@ -65,7 +65,6 @@ func mergeComplementarySets(sets []bookSet) []bookSet {
 		for _, oneSet := range ones {
 			if areComplementary(fourSet, oneSet) {
 				mergeSets(fourSet, oneSet)
-
 			}
 		}
 	}
@@ -97,7 +96,7 @@ func findSetsOf(sets []bookSet, size int) []bookSet {
 
 func areComplementary(bigSet, smallSet bookSet) bool {
 	for i := range bigSet {
-		if bigSet[i] > 0 && smallSet[i] > 0 {
+		if bigSet[i] && smallSet[i] {
 			return false
 		}
 	}
@@ -106,9 +105,9 @@ func areComplementary(bigSet, smallSet bookSet) bool {
 
 func mergeSets(bigSet, smallSet bookSet) {
 	for i := range bigSet {
-		if smallSet[i] > 0 {
+		if smallSet[i] {
 			bigSet[i] = smallSet[i]
-			smallSet[i] = 0
+			smallSet[i] = false
 		}
 	}
 }
