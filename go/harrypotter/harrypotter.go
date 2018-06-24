@@ -8,9 +8,29 @@ const optimalDiscountSize = 4
 var discounts = [NumBooks + 1]float64{1.0, 1.0, .95, .9, .8, .75}
 
 //CalculatePrice computes and returns the price for the specified books
-func CalculatePrice(books []int) float64 {
+func CalculatePrice(books BookBasket) float64 {
 	sets := mergeComplementarySets(buildSets(books))
 	return totalPriceOf(sets)
+}
+
+//BookBasket contains zero or more copies of each of NumBooks books
+type BookBasket struct {
+	counts []int
+}
+
+//CreateBasket returns a new BookBasket containing the given books
+func CreateBasket(bookCounts ...int) (BookBasket, bool) {
+	if len(bookCounts) > NumBooks {
+		return BookBasket{}, false
+	}
+	for _, count := range bookCounts {
+		if count < 0 {
+			return BookBasket{}, false
+		}
+	}
+	return BookBasket{
+		counts: bookCounts,
+	}, true
 }
 
 type bookSet []bool
@@ -30,7 +50,7 @@ func (set bookSet) count() int {
 	return count
 }
 
-func buildSets(books []int) []bookSet {
+func buildSets(books BookBasket) []bookSet {
 	sets := []bookSet{}
 	for {
 		set, ok := extractSet(books, optimalDiscountSize)
@@ -42,13 +62,13 @@ func buildSets(books []int) []bookSet {
 	return sets
 }
 
-func extractSet(books []int, maxSize int) (bookSet, bool) {
+func extractSet(books BookBasket, maxSize int) (bookSet, bool) {
 	counts := make([]bool, NumBooks)
 	setSize := 0
-	for i, count := range books {
+	for i, count := range books.counts {
 		if count > 0 && setSize < maxSize {
 			counts[i] = true
-			books[i]--
+			books.counts[i]--
 			setSize++
 		}
 	}
@@ -83,10 +103,10 @@ func findSetsOf(sets []bookSet, size int) []bookSet {
 	startIndex := 0
 	stopIndex := len(sets)
 	for i, set := range sets {
-		if set.count() > size {
+		setSize := set.count()
+		if setSize > size {
 			startIndex = i + 1
-		}
-		if set.count() < size {
+		} else if setSize < size {
 			stopIndex = i
 			break
 		}
@@ -105,9 +125,7 @@ func areComplementary(bigSet, smallSet bookSet) bool {
 
 func mergeSets(bigSet, smallSet bookSet) {
 	for i := range bigSet {
-		if smallSet[i] {
-			bigSet[i] = smallSet[i]
-			smallSet[i] = false
-		}
+		bigSet[i] = bigSet[i] || smallSet[i]
+		smallSet[i] = false
 	}
 }
