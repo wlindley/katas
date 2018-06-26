@@ -3,12 +3,18 @@ package lcd
 // Display is a uint that can be converted into a string representation
 type Display uint
 
+// Dimension defines the width and height of each digit as it's printed
+type Dimension struct {
+	Width  uint
+	Height uint
+}
+
 // SPrint converts a Display to a string representation using LCD-style digits
-func (l Display) SPrint() string {
+func (l Display) SPrint(dimension Dimension) string {
 	digits := digitize(uint(l))
 	output := ""
-	for row := 0; row < digitHeight; row++ {
-		output += printRow(digits, row)
+	for row := 0; row < int(dimension.Height); row++ {
+		output += printRow(digits, dimension, row)
 	}
 	return output
 }
@@ -34,28 +40,48 @@ func reverse(digits []uint) []uint {
 	return digits
 }
 
-func printRow(digits []uint, row int) string {
+func printRow(digits []uint, dimension Dimension, row int) string {
 	output := ""
+	srcRow := dstToSrc(row, dimension.Height, digitHeight)
 	for _, digit := range digits {
-		start := row * digitWidth
-		end := start + digitWidth
-		output += digitStrings[digit][start:end]
+		for col := 0; col < int(dimension.Width); col++ {
+			srcCol := (srcRow * digitWidth) + dstToSrc(col, dimension.Width, digitWidth)
+			output += string(digitStrings[digit][srcCol])
+		}
 	}
 	return output + "\n"
 }
 
-const digitWidth = 3
-const digitHeight = 3
+func dstToSrc(dstValue int, dstSize, srcSize uint) int {
+	dstMidpoint := int(dstSize / 2)
+	srcMidpoint := int(srcSize / 2)
+	switch {
+	case dstValue == 0:
+		return 0
+	case dstValue == int(dstSize)-1:
+		return int(srcSize) - 1
+	case dstValue == dstMidpoint:
+		return srcMidpoint
+	case dstValue < dstMidpoint:
+		return srcMidpoint - 1
+	case dstValue > dstMidpoint:
+		return srcMidpoint + 1
+	}
+	return 0
+}
+
+const digitWidth = 5
+const digitHeight = 5
 
 var digitStrings = [...]string{
-	" _ | ||_|",
-	"     |  |",
-	" _  _||_ ",
-	" _  _| _|",
-	"   |_|  |",
-	" _ |_  _|",
-	" _ |_ |_|",
-	" _   |  |",
-	" _ |_||_|",
-	" _ |_| _|",
+	" ___ |   ||   ||   ||___|", // 0
+	"         |    |    |    |", // 1
+	" ___     | ___||    |___ ", // 2
+	" ___     | ___|    | ___|", // 3
+	"     |   ||___|    |    |", // 4
+	" ___ |    |___     | ___|", // 5
+	" ___ |    |___ |   ||___|", // 6
+	" ___     |    |    |    |", // 7
+	" ___ |   ||___||   ||___|", // 8
+	" ___ |   ||___|    | ___|", // 9
 }
