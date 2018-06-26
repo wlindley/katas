@@ -6,7 +6,7 @@ import (
 	"github.com/wlindley/katas/go/lcd"
 )
 
-func TestSPrint(t *testing.T) {
+func TestFormat(t *testing.T) {
 	tt := []testCase{
 		defaultTestCase("Zero", 0, " _ \n| |\n|_|\n"),
 		defaultTestCase("One", 1, "   \n  |\n  |\n"),
@@ -20,14 +20,14 @@ func TestSPrint(t *testing.T) {
 		defaultTestCase("Nine", 9, " _ \n|_|\n _|\n"),
 		defaultTestCase("Ten", 10, "    _ \n  || |\n  ||_|\n"),
 		defaultTestCase("Large Number", 1429, "       _  _ \n  ||_| _||_|\n  |  ||_  _|\n"),
-		sizedTestCase("Big Zero", 0, lcd.Dimension{Width: 7, Height: 7}, " _____ \n|     |\n|     |\n|     |\n|     |\n|     |\n|_____|\n"),
-		sizedTestCase("Non-square", 8, lcd.Dimension{Width: 3, Height: 5}, " _ \n| |\n|_|\n| |\n|_|\n"),
-		sizedTestCase("Non-odd", 2, lcd.Dimension{Width: 6, Height: 4}, " ____ \n     |\n ____|\n|____ \n"),
+		sizedTestCase("Big Zero", 0, lcd.Square(7), " _____ \n|     |\n|     |\n|     |\n|     |\n|     |\n|_____|\n"),
+		sizedTestCase("Non-square", 8, lcd.Custom(3, 5), " _ \n| |\n|_|\n| |\n|_|\n"),
+		sizedTestCase("Non-odd", 2, lcd.Custom(6, 4), " ____ \n     |\n ____|\n|____ \n"),
 	}
 
 	for _, x := range tt {
 		t.Run(x.Name, func(t *testing.T) {
-			actual := lcd.Display(x.Input).SPrint(x.Dimension)
+			actual := lcd.Value(x.Input).Format(x.Dimension)
 			if actual != x.Expected {
 				t.Errorf("for %d got\n%s, but expected\n%s", x.Input, actual, x.Expected)
 			}
@@ -43,7 +43,7 @@ type testCase struct {
 }
 
 func defaultTestCase(name string, input uint, expected string) testCase {
-	return sizedTestCase(name, input, lcd.Dimension{Width: 3, Height: 3}, expected)
+	return sizedTestCase(name, input, lcd.DefaultDimension, expected)
 }
 
 func sizedTestCase(name string, input uint, dimension lcd.Dimension, expected string) testCase {

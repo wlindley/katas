@@ -1,19 +1,51 @@
 package lcd
 
-// Display is a uint that can be converted into a string representation
-type Display uint
+// Value is a uint that can be converted into a string representation
+type Value uint
 
 // Dimension defines the width and height of each digit as it's printed
-type Dimension struct {
-	Width  uint
-	Height uint
+type Dimension interface {
+	Width() uint
+	Height() uint
 }
 
-// SPrint converts a Display to a string representation using LCD-style digits
-func (l Display) SPrint(dimension Dimension) string {
+type dimension struct {
+	width  uint
+	height uint
+}
+
+func (d dimension) Width() uint {
+	return d.width
+}
+
+func (d dimension) Height() uint {
+	return d.height
+}
+
+// DefaultDimension is the default output size for the lcd module
+var DefaultDimension Dimension = dimension{width: 3, height: 3}
+
+// Square returns an object defining a size-by-size square output format
+func Square(size uint) Dimension {
+	return dimension{
+		width:  size,
+		height: size,
+	}
+}
+
+// Custom returns an object defining a width-by-height output format
+func Custom(width, height uint) Dimension {
+	return dimension{
+		width:  width,
+		height: height,
+	}
+}
+
+// Format converts a Display to a string representation using LCD-style digits
+func (l Value) Format(dimension Dimension) string {
 	digits := digitize(uint(l))
 	output := ""
-	for row := 0; row < int(dimension.Height); row++ {
+	for row := 0; row < int(dimension.Height()); row++ {
 		output += printRow(digits, dimension, row)
 	}
 	return output
@@ -42,10 +74,10 @@ func reverse(digits []uint) []uint {
 
 func printRow(digits []uint, dimension Dimension, row int) string {
 	output := ""
-	srcRow := dstToSrc(row, dimension.Height, digitHeight)
+	srcRow := dstToSrc(row, dimension.Height(), digitHeight)
 	for _, digit := range digits {
-		for col := 0; col < int(dimension.Width); col++ {
-			srcCol := (srcRow * digitWidth) + dstToSrc(col, dimension.Width, digitWidth)
+		for col := 0; col < int(dimension.Width()); col++ {
+			srcCol := (srcRow * digitWidth) + dstToSrc(col, dimension.Width(), digitWidth)
 			output += string(digitStrings[digit][srcCol])
 		}
 	}
