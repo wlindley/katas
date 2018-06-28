@@ -53,26 +53,26 @@ func TestHand(t *testing.T) {
 
 type compareTestCase struct {
 	Name       string
-	FirstHand  poker.Cards
-	SecondHand poker.Cards
+	FirstHand  *poker.Hand
+	SecondHand *poker.Hand
 	Expected   poker.Winner
 }
 
-func firstWins(name string, firstHand, secondHand poker.Cards) compareTestCase {
-	return createCompareTestCase(name, firstHand, secondHand, poker.First)
+func firstWins(name string, firstCards, secondCards []poker.Card) compareTestCase {
+	return createCompareTestCase(name, firstCards, secondCards, poker.First)
 }
 
-func secondWins(name string, firstHand, secondHand poker.Cards) compareTestCase {
-	return createCompareTestCase(name, firstHand, secondHand, poker.Second)
+func secondWins(name string, firstCards, secondCards []poker.Card) compareTestCase {
+	return createCompareTestCase(name, firstCards, secondCards, poker.Second)
 }
 
-func tie(name string, firstHand, secondHand poker.Cards) compareTestCase {
-	return createCompareTestCase(name, firstHand, secondHand, poker.Tie)
+func tie(name string, firstCards, secondCards []poker.Card) compareTestCase {
+	return createCompareTestCase(name, firstCards, secondCards, poker.Tie)
 }
 
-func createCompareTestCase(name string, firstHand, secondHand poker.Cards, winner poker.Winner) compareTestCase {
-	firstHand, _ = poker.NewHand(firstHand...)
-	secondHand, _ = poker.NewHand(secondHand...)
+func createCompareTestCase(name string, firstCards, secondCards []poker.Card, winner poker.Winner) compareTestCase {
+	firstHand, _ := poker.NewHand(firstCards...)
+	secondHand, _ := poker.NewHand(secondCards...)
 	return compareTestCase{
 		Name:       name,
 		FirstHand:  firstHand,
@@ -83,17 +83,17 @@ func createCompareTestCase(name string, firstHand, secondHand poker.Cards, winne
 
 func TestCompare(t *testing.T) {
 	tt := []compareTestCase{
-		firstWins("First Player High Card", poker.Cards{poker.Club(2), poker.Club(5), poker.Spade(7), poker.Spade(9), poker.Spade(poker.Ace)}, poker.Cards{poker.Heart(poker.King), poker.Heart(9), poker.Diamond(7), poker.Diamond(5), poker.Heart(3)}),
-		secondWins("Second Player High Card", poker.Cards{poker.Club(2), poker.Club(5), poker.Spade(7), poker.Spade(9), poker.Spade(poker.King)}, poker.Cards{poker.Heart(poker.Ace), poker.Heart(9), poker.Diamond(7), poker.Diamond(5), poker.Heart(3)}),
-		tie("Tie High Card", poker.Cards{poker.Club(2), poker.Club(5), poker.Spade(7), poker.Spade(9), poker.Spade(poker.Ace)}, poker.Cards{poker.Heart(poker.Ace), poker.Heart(9), poker.Diamond(7), poker.Diamond(5), poker.Heart(2)}),
-		firstWins("First Player Second Highest Card", poker.Cards{poker.Club(2), poker.Club(5), poker.Spade(7), poker.Spade(poker.Jack), poker.Spade(poker.King)}, poker.Cards{poker.Heart(poker.King), poker.Heart(9), poker.Diamond(7), poker.Diamond(5), poker.Heart(3)}),
+		firstWins("First Player High Card", []poker.Card{poker.Club(2), poker.Club(5), poker.Spade(7), poker.Spade(9), poker.Spade(poker.Ace)}, []poker.Card{poker.Heart(poker.King), poker.Heart(9), poker.Diamond(7), poker.Diamond(5), poker.Heart(3)}),
+		secondWins("Second Player High Card", []poker.Card{poker.Club(2), poker.Club(5), poker.Spade(7), poker.Spade(9), poker.Spade(poker.King)}, []poker.Card{poker.Heart(poker.Ace), poker.Heart(9), poker.Diamond(7), poker.Diamond(5), poker.Heart(3)}),
+		tie("Tie High Card", []poker.Card{poker.Club(2), poker.Club(5), poker.Spade(7), poker.Spade(9), poker.Spade(poker.Ace)}, []poker.Card{poker.Heart(poker.Ace), poker.Heart(9), poker.Diamond(7), poker.Diamond(5), poker.Heart(2)}),
+		firstWins("First Player Second Highest Card", []poker.Card{poker.Club(2), poker.Club(5), poker.Spade(7), poker.Spade(poker.Jack), poker.Spade(poker.King)}, []poker.Card{poker.Heart(poker.King), poker.Heart(9), poker.Diamond(7), poker.Diamond(5), poker.Heart(3)}),
 	}
 
 	for _, x := range tt {
 		t.Run(x.Name, func(t *testing.T) {
 			actual := x.FirstHand.Compare(x.SecondHand)
 			if actual != x.Expected {
-				t.Errorf("compared %v and %v, got %v, but expected %v", x.FirstHand, x.SecondHand, actual, x.Expected)
+				t.Errorf("compared %v and %v, got %s, but expected %s", x.FirstHand, x.SecondHand, actual, x.Expected)
 			}
 		})
 	}
