@@ -68,10 +68,7 @@ func Club(value uint) Card {
 	return createCard("C", value)
 }
 
-var invalidCard = Card{
-	suit:  "INVALID",
-	value: 0,
-}
+var invalidCard = Card{}
 
 func createCard(suit string, value uint) Card {
 	if value < minValue || value > maxValue {
@@ -90,7 +87,7 @@ type Hand struct {
 
 func (h *Hand) Len() int           { return len(h.cards) }
 func (h *Hand) Swap(i, j int)      { h.cards[i], h.cards[j] = h.cards[j], h.cards[i] }
-func (h *Hand) Less(i, j int) bool { return h.cards[i].value < h.cards[j].value }
+func (h *Hand) Less(i, j int) bool { return h.cards[i].value > h.cards[j].value } // Descending order by value
 
 func (h *Hand) any(predicate func(Card) bool) (Card, bool) {
 	for _, card := range h.cards {
@@ -116,10 +113,14 @@ func (h *Hand) containsDuplicates() (Card, bool) {
 	return invalidCard, false
 }
 
+var comparators = []func(*Hand, *Hand) Winner{
+	compareHighCards,
+}
+
 // Compare compares two poker hands and returns an instance of Winner informing the caller who won the hand
 func (h *Hand) Compare(other *Hand) Winner {
-	for i := handSize - 1; i >= 0; i-- {
-		result := h.cards[i].compare(other.cards[i])
+	for _, comparator := range comparators {
+		result := comparator(h, other)
 		if result != Tie {
 			return result
 		}
@@ -147,3 +148,13 @@ func NewHand(cards ...Card) (*Hand, error) {
 const minValue = 2
 const maxValue = 14
 const handSize = 5
+
+func compareHighCards(first, second *Hand) Winner {
+	for i := 0; i < handSize; i++ {
+		result := first.cards[i].compare(second.cards[i])
+		if result != Tie {
+			return result
+		}
+	}
+	return Tie
+}

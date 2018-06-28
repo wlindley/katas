@@ -1,10 +1,88 @@
 package poker_test
 
 import (
+	"strconv"
 	"testing"
 
 	"github.com/wlindley/katas/go/poker"
 )
+
+func TestNewHand(t *testing.T) {
+	tt := []handTestCase{
+		validHand("Valid Hand", c("CJ"), c("HJ"), c("DQ"), c("SK"), c("CA")),
+		invalidHand("Empty Hand"),
+		invalidHand("Too Small Hand", c("C2"), c("C3"), c("C4"), c("C5")),
+		invalidHand("Too Large Hand", c("C2"), c("C3"), c("C4"), c("C5"), c("C6"), c("C7")),
+		invalidHand("Too Low Card", c("C1"), c("C2"), c("C3"), c("C4"), c("C5")),
+		invalidHand("Too High Card", c("C15"), c("C2"), c("C3"), c("C4"), c("C5")),
+		invalidHand("Duplicate Cards", c("H2"), c("H2"), c("C3"), c("S4"), c("C5")),
+	}
+
+	for _, x := range tt {
+		t.Run(x.Name, func(t *testing.T) {
+			_, err := poker.NewHand(x.Hand...)
+			if err == nil && !x.IsValid {
+				t.Errorf("%v should have failed to create a hand, but did not", x.Hand)
+			} else if err != nil && x.IsValid {
+				t.Errorf("%v should have successfully created a hand, but instead errored: %s", x.Hand, err)
+			}
+		})
+	}
+}
+
+func TestCompare(t *testing.T) {
+	tt := []compareTestCase{
+		firstWins("First Player High Card",
+			[]poker.Card{c("C2"), c("C5"), c("S7"), c("S9"), c("SA")},
+			[]poker.Card{c("HK"), c("H9"), c("D7"), c("D5"), c("H3")}),
+		secondWins("Second Player High Card",
+			[]poker.Card{c("C2"), c("C5"), c("S7"), c("S9"), c("SK")},
+			[]poker.Card{c("HA"), c("H9"), c("D7"), c("D5"), c("H3")}),
+		tie("Tie High Card",
+			[]poker.Card{c("C2"), c("C5"), c("S7"), c("S9"), c("SA")},
+			[]poker.Card{c("HA"), c("H9"), c("D7"), c("D5"), c("H2")}),
+		firstWins("First Player Second Highest Card",
+			[]poker.Card{c("C2"), c("C5"), c("S7"), c("SJ"), c("SK")},
+			[]poker.Card{c("HK"), c("H9"), c("D7"), c("D5"), c("H3")}),
+	}
+
+	for _, x := range tt {
+		t.Run(x.Name, func(t *testing.T) {
+			actual := x.FirstHand.Compare(x.SecondHand)
+			if actual != x.Expected {
+				t.Errorf("compared %v and %v, got %s, but expected %s", x.FirstHand, x.SecondHand, actual, x.Expected)
+			}
+		})
+	}
+}
+
+func c(def string) poker.Card {
+	v, err := strconv.Atoi(def[1:])
+	value := uint(v)
+	if err != nil {
+		switch def[1:] {
+		case "J", "j":
+			value = poker.Jack
+		case "Q", "q":
+			value = poker.Queen
+		case "K", "k":
+			value = poker.King
+		case "A", "a":
+			value = poker.Ace
+		}
+	}
+	switch def[0:1] {
+	case "C":
+		return poker.Club(value)
+	case "S":
+		return poker.Spade(value)
+	case "H":
+		return poker.Heart(value)
+	case "D":
+		return poker.Diamond(value)
+	}
+	return poker.Card{}
+}
 
 type handTestCase struct {
 	Name    string
@@ -25,29 +103,6 @@ func invalidHand(name string, cards ...poker.Card) handTestCase {
 		Name:    name,
 		Hand:    cards,
 		IsValid: false,
-	}
-}
-
-func TestHand(t *testing.T) {
-	tt := []handTestCase{
-		validHand("Valid Hand", poker.Club(poker.J), poker.Heart(poker.Jack), poker.Diamond(poker.Queen), poker.Spade(poker.King), poker.Club(poker.Ace)),
-		invalidHand("Empty Hand"),
-		invalidHand("Too Small Hand", poker.Club(2), poker.Club(3), poker.Club(4), poker.Club(5)),
-		invalidHand("Too Large Hand", poker.Club(2), poker.Club(3), poker.Club(4), poker.Club(5), poker.Club(6), poker.Club(7)),
-		invalidHand("Too Low Card", poker.Club(1), poker.Club(2), poker.Club(3), poker.Club(4), poker.Club(5)),
-		invalidHand("Too High Card", poker.Club(15), poker.Club(2), poker.Club(3), poker.Club(4), poker.Club(5)),
-		invalidHand("Duplicate Cards", poker.Heart(2), poker.Heart(2), poker.Club(3), poker.Spade(4), poker.Club(5)),
-	}
-
-	for _, x := range tt {
-		t.Run(x.Name, func(t *testing.T) {
-			_, err := poker.NewHand(x.Hand...)
-			if err == nil && !x.IsValid {
-				t.Errorf("%v should have failed to create a hand, but did not", x.Hand)
-			} else if err != nil && x.IsValid {
-				t.Errorf("%v should have successfully created a hand, but instead errored: %s", x.Hand, err)
-			}
-		})
 	}
 }
 
@@ -78,23 +133,5 @@ func createCompareTestCase(name string, firstCards, secondCards []poker.Card, wi
 		FirstHand:  firstHand,
 		SecondHand: secondHand,
 		Expected:   winner,
-	}
-}
-
-func TestCompare(t *testing.T) {
-	tt := []compareTestCase{
-		firstWins("First Player High Card", []poker.Card{poker.Club(2), poker.Club(5), poker.Spade(7), poker.Spade(9), poker.Spade(poker.Ace)}, []poker.Card{poker.Heart(poker.King), poker.Heart(9), poker.Diamond(7), poker.Diamond(5), poker.Heart(3)}),
-		secondWins("Second Player High Card", []poker.Card{poker.Club(2), poker.Club(5), poker.Spade(7), poker.Spade(9), poker.Spade(poker.King)}, []poker.Card{poker.Heart(poker.Ace), poker.Heart(9), poker.Diamond(7), poker.Diamond(5), poker.Heart(3)}),
-		tie("Tie High Card", []poker.Card{poker.Club(2), poker.Club(5), poker.Spade(7), poker.Spade(9), poker.Spade(poker.Ace)}, []poker.Card{poker.Heart(poker.Ace), poker.Heart(9), poker.Diamond(7), poker.Diamond(5), poker.Heart(2)}),
-		firstWins("First Player Second Highest Card", []poker.Card{poker.Club(2), poker.Club(5), poker.Spade(7), poker.Spade(poker.Jack), poker.Spade(poker.King)}, []poker.Card{poker.Heart(poker.King), poker.Heart(9), poker.Diamond(7), poker.Diamond(5), poker.Heart(3)}),
-	}
-
-	for _, x := range tt {
-		t.Run(x.Name, func(t *testing.T) {
-			actual := x.FirstHand.Compare(x.SecondHand)
-			if actual != x.Expected {
-				t.Errorf("compared %v and %v, got %s, but expected %s", x.FirstHand, x.SecondHand, actual, x.Expected)
-			}
-		})
 	}
 }
