@@ -2,24 +2,34 @@ package poker
 
 import (
 	"fmt"
+	"sort"
 )
 
 // Winner represents which player won the hand
-type Winner int
+type Winner string
 
 // First means the first player won the hand
-const First Winner = 1
+const First Winner = "first player won"
 
 // Second means the second player won the hand
-const Second Winner = -1
+const Second Winner = "second player won"
 
 // Tie means the two players tied
-const Tie Winner = 0
+const Tie Winner = "tie"
 
 // Card stores the attributes of a single playing card
 type Card struct {
 	suit  string
 	value int
+}
+
+func (card Card) compare(other Card) Winner {
+	if card.value > other.value {
+		return First
+	} else if card.value < other.value {
+		return Second
+	}
+	return Tie
 }
 
 // Jack is the value of a jack card
@@ -84,6 +94,10 @@ func createCard(suit string, value uint) Card {
 // Cards represents the cards a player has been dealt
 type Cards []Card
 
+func (cards Cards) Len() int           { return len(cards) }
+func (cards Cards) Swap(i, j int)      { cards[i], cards[j] = cards[j], cards[i] }
+func (cards Cards) Less(i, j int) bool { return cards[i].value < cards[j].value }
+
 func (cards Cards) any(predicate func(Card) bool) (Card, bool) {
 	for _, card := range cards {
 		if predicate(card) {
@@ -108,19 +122,31 @@ func (cards Cards) containsDuplicates() (Card, bool) {
 	return invalidCard, false
 }
 
-// Hand returns a Cards with the 5 cards making a player's hand
-func Hand(cards ...Card) (Cards, error) {
+// NewHand returns a Cards with the 5 cards making a player's hand
+func NewHand(cards ...Card) (Cards, error) {
 	if len(cards) != handSize {
 		return nil, fmt.Errorf("incorrect number of cards, expected %d", handSize)
 	}
 	hand := Cards(cards)
+	sort.Sort(hand)
 	if card, hasInvalid := hand.any(isInvalid); hasInvalid {
 		return nil, fmt.Errorf("hand contains invalid card %v", card)
 	}
 	if card, hasDuplicates := hand.containsDuplicates(); hasDuplicates {
 		return nil, fmt.Errorf("hand contains duplicate cards %v", card)
 	}
-	return nil, nil
+	return hand, nil
+}
+
+// Compare compares two poker hands and returns an instance of Winner informing the caller who won the hand
+func (cards Cards) Compare(other Cards) Winner {
+	for i := handSize - 1; i >= 0; i-- {
+		result := cards[i].compare(other[i])
+		if result != Tie {
+			return result
+		}
+	}
+	return Tie
 }
 
 const minValue = 2
