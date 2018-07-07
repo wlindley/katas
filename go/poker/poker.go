@@ -5,6 +5,10 @@ import (
 	"sort"
 )
 
+const minValue = 2
+const maxValue = 14
+const handSize = 5
+
 // Winner represents which player won the hand
 type Winner int
 
@@ -96,15 +100,6 @@ func (cards cardCollection) all(predicate func(Card) bool) bool {
 	return true
 }
 
-// Hand represents the cards a player has been dealt
-type Hand struct {
-	cards [handSize]Card
-}
-
-func (h *Hand) Len() int           { return len(h.cards) }
-func (h *Hand) Swap(i, j int)      { h.cards[i], h.cards[j] = h.cards[j], h.cards[i] }
-func (h *Hand) Less(i, j int) bool { return h.cards[i].value > h.cards[j].value } // Descending order by value
-
 func isInvalid(card Card) bool {
 	return card == invalidCard
 }
@@ -121,13 +116,40 @@ func suitEquals(suit string) func(Card) bool {
 	}
 }
 
+// Hand represents the cards a player has been dealt
+type Hand struct {
+	cards [handSize]Card
+}
+
+// NewHand returns a Hand with the 5 cards making a player's hand
+func NewHand(cards ...Card) (*Hand, error) {
+	if len(cards) != handSize {
+		return nil, fmt.Errorf("incorrect number of cards, expected %d", handSize)
+	}
+	hand := Hand{}
+	copy(hand.cards[:], cards)
+	sort.Sort(&hand)
+	if card, hasInvalid := cardCollection(hand.cards[:]).any(isInvalid); hasInvalid {
+		return nil, fmt.Errorf("hand contains invalid card %v", card)
+	}
+	if card, hasDuplicates := hand.containsDuplicates(); hasDuplicates {
+		return nil, fmt.Errorf("hand contains duplicate cards %v", card)
+	}
+	return &hand, nil
+}
+
+func (h *Hand) Len() int           { return len(h.cards) }
+func (h *Hand) Swap(i, j int)      { h.cards[i], h.cards[j] = h.cards[j], h.cards[i] }
+func (h *Hand) Less(i, j int) bool { return h.cards[i].value > h.cards[j].value } // Descending order by value
+
+func (h *Hand) highCard() Card {
+	return h.cards[0]
+}
+
 func (h *Hand) containsDuplicates() (Card, bool) {
-	// TODO: refactor for perf since cards are sorted
 	for i := 0; i < len(h.cards)-1; i++ {
-		for j := i + 1; j < len(h.cards); j++ {
-			if h.cards[i] == h.cards[j] {
-				return h.cards[i], true
-			}
+		if h.cards[i] == h.cards[i+1] {
+			return h.cards[i], true
 		}
 	}
 	return invalidCard, false
@@ -165,10 +187,6 @@ func (h *Hand) valueOfStraight() int {
 	return h.highCard().value
 }
 
-func (h *Hand) highCard() Card {
-	return h.cards[0]
-}
-
 func (h *Hand) valueOfFlush() int {
 	cards := cardCollection(h.cards[:])
 	if cards.all(suitEquals(h.highCard().suit)) {
@@ -198,68 +216,6 @@ func (h *Hand) Compare(other *Hand) Winner {
 		}
 	}
 	return Tie
-}
-
-// NewHand returns a Hand with the 5 cards making a player's hand
-func NewHand(cards ...Card) (*Hand, error) {
-	if len(cards) != handSize {
-		return nil, fmt.Errorf("incorrect number of cards, expected %d", handSize)
-	}
-	hand := Hand{}
-	copy(hand.cards[:], cards)
-	sort.Sort(&hand)
-	if card, hasInvalid := cardCollection(hand.cards[:]).any(isInvalid); hasInvalid {
-		return nil, fmt.Errorf("hand contains invalid card %v", card)
-	}
-	if card, hasDuplicates := hand.containsDuplicates(); hasDuplicates {
-		return nil, fmt.Errorf("hand contains duplicate cards %v", card)
-	}
-	return &hand, nil
-}
-
-const minValue = 2
-const maxValue = 14
-const handSize = 5
-
-func compareValues(first, second int) Winner {
-	if first == 0 && second == 0 {
-		return none
-	}
-	if first > second {
-		return First
-	} else if first < second {
-		return Second
-	}
-	return Tie
-}
-
-func compareSetOfSize(first, second *Hand, size int) Winner {
-	firstSet := first.valueOfSetSize(size)
-	secondSet := second.valueOfSetSize(size)
-	return compareValues(firstSet, secondSet)
-}
-
-func compareMultiSetValidity(firstOne, firstTwo, secondOne, secondTwo int) Winner {
-	firstValid := allFound(firstOne, firstTwo)
-	secondValid := allFound(secondOne, secondTwo)
-	switch {
-	case firstValid && secondValid:
-		return Tie
-	case firstValid && !secondValid:
-		return First
-	case !firstValid && secondValid:
-		return Second
-	}
-	return none
-}
-
-func allFound(values ...int) bool {
-	for _, value := range values {
-		if value == 0 {
-			return false
-		}
-	}
-	return true
 }
 
 func compareStraightFlushes(first, second *Hand) Winner {
@@ -329,4 +285,45 @@ func compareHighCards(first, second *Hand) Winner {
 		}
 	}
 	return Tie
+}
+
+func compareValues(first, second int) Winner {
+	if first == 0 && second == 0 {
+		return none
+	}
+	if first > second {
+		return First
+	} else if first < second {
+		return Second
+	}
+	return Tie
+}
+
+func compareSetOfSize(first, second *Hand, size int) Winner {
+	firstSet := first.valueOfSetSize(size)
+	secondSet := second.valueOfSetSize(size)
+	return compareValues(firstSet, secondSet)
+}
+
+func compareMultiSetValidity(firstOne, firstTwo, secondOne, secondTwo int) Winner {
+	firstValid := allFound(firstOne, firstTwo)
+	secondValid := allFound(secondOne, secondTwo)
+	switch {
+	case firstValid && secondValid:
+		return Tie
+	case firstValid && !secondValid:
+		return First
+	case !firstValid && secondValid:
+		return Second
+	}
+	return none
+}
+
+func allFound(values ...int) bool {
+	for _, value := range values {
+		if value == 0 {
+			return false
+		}
+	}
+	return true
 }
