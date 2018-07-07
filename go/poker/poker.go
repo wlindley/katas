@@ -223,7 +223,7 @@ func compareStraightFlushes(first, second *Hand) Winner {
 	firstStraight := first.valueOfStraight()
 	secondFlush := second.valueOfFlush()
 	secondStraight := second.valueOfStraight()
-	result := compareMultiSetValidity(firstFlush, firstStraight, secondFlush, secondStraight)
+	result := compareMultiAttributeValidity(firstFlush, firstStraight, secondFlush, secondStraight)
 	if result == Tie {
 		result = compareValues(first.highCard().value, second.highCard().value)
 	}
@@ -237,7 +237,7 @@ func compareFourOfAKind(first, second *Hand) Winner {
 func compareFullHouses(first, second *Hand) Winner {
 	firstThree, firstTwo := first.valueOfSetSizes(3, 2)
 	secondThree, secondTwo := second.valueOfSetSizes(3, 2)
-	result := compareMultiSetValidity(firstThree, firstTwo, secondThree, secondTwo)
+	result := compareMultiAttributeValidity(firstThree, firstTwo, secondThree, secondTwo)
 	if result == Tie {
 		result = compareValues(firstThree, secondThree)
 	}
@@ -263,7 +263,7 @@ func compareThreeOfAKind(first, second *Hand) Winner {
 func compareTwoPairs(first, second *Hand) Winner {
 	firstHigh, firstLow := first.valueOfSetSizes(2, 2)
 	secondHigh, secondLow := second.valueOfSetSizes(2, 2)
-	result := compareMultiSetValidity(firstHigh, firstLow, secondHigh, secondLow)
+	result := compareMultiAttributeValidity(firstHigh, firstLow, secondHigh, secondLow)
 	if !result.conclusive() {
 		result = compareValues(firstHigh, secondHigh)
 	}
@@ -305,7 +305,7 @@ func compareSetOfSize(first, second *Hand, size int) Winner {
 	return compareValues(firstSet, secondSet)
 }
 
-func compareMultiSetValidity(firstOne, firstTwo, secondOne, secondTwo int) Winner {
+func compareMultiAttributeValidity(firstOne, firstTwo, secondOne, secondTwo int) Winner {
 	firstValid := allFound(firstOne, firstTwo)
 	secondValid := allFound(secondOne, secondTwo)
 	switch {
